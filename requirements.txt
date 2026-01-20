@@ -1,7 +1,6 @@
 # Telegram
 pyrogram
 tgcrypto
-pyromod
 
 # Database
 motor
