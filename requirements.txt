@@ -5,7 +5,6 @@ pyromod
 
 # Database
 motor
-pymongo
 dnspython
 
 # Utilities
