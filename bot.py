@@ -3,7 +3,6 @@
 from aiohttp import web
 from plugins.web_server import web_server
 
-from pyromod import listen
 from pyrogram import Client
 from pyrogram.enums import ParseMode
 import sys
