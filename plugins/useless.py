@@ -1,0 +1,46 @@
+from bot import Bot
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import filters
+from config import ADMINS, BOT_STATS_TEXT, USER_REPLY_TEXT
+from datetime import datetime
+from helper_func import get_readable_time
+
+
+# ---------------- STATS COMMAND ---------------- #
+
+@Bot.on_message(filters.command("stats") & filters.user(ADMINS))
+async def stats(bot: Bot, message: Message):
+    now = datetime.now()
+    delta = now - bot.uptime
+    time = get_readable_time(delta.seconds)
+
+    await message.reply(
+        BOT_STATS_TEXT.format(uptime=time)
+    )
+
+
+# ---------------- AUTO REPLY ---------------- #
+
+@Bot.on_message(filters.private & filters.incoming)
+async def useless(bot: Bot, message: Message):
+
+    if not message.text:
+        return
+
+    if USER_REPLY_TEXT in message.text:
+
+        keyboard = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        "Visit Website",
+                        url="https://example.com"
+                    )
+                ]
+            ]
+        )
+
+        await message.reply(
+            USER_REPLY_TEXT,
+            reply_markup=keyboard
+        )
