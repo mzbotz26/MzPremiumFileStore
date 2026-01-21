@@ -341,7 +341,40 @@ async def ref(client, q):
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 Back", callback_data="home")]
         ])
+@Bot.on_callback_query(filters.regex("^home$"))
+async def home_back(client, q):
+    await q.answer()
+    await send_home(client, q.message)
+
+
+@Bot.on_callback_query(filters.regex("^premium$"))
+async def prem(client, q):
+    await q.message.edit_media(
+        InputMediaPhoto(
+            media=START_PIC,
+            caption="👑 Premium Plans\n\n7 Days ₹10\n30 Days ₹30",
+            parse_mode=ParseMode.HTML
+        ),
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("📩 Contact Owner", url=f"https://t.me/{OWNER_USERNAME}")],
+            [InlineKeyboardButton("🔙 Back", callback_data="home")]
+        ])
     )
+
+
+@Bot.on_callback_query(filters.regex("^refinfo$"))
+async def ref(client, q):
+    await q.message.edit_media(
+        InputMediaPhoto(
+            media=START_PIC,
+            caption="🎁 Invite 5 users → Get 30 Days Premium Free",
+            parse_mode=ParseMode.HTML
+        ),
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔙 Back", callback_data="home")]
+        ])
+    )
+
 
 @Bot.on_callback_query(filters.regex("^mypremium$"))
 async def myp(client, q):
@@ -349,26 +382,31 @@ async def myp(client, q):
     p = await get_premium(uid)
 
     if not p:
-        return await q.message.edit(
-            "❌ You are not premium.",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔙 Back", callback_data="home")]
-            ])
-        )
+        text = "❌ You are not premium."
+    else:
+        left = int((p["expire_time"] - time.time()) / 3600)
+        text = f"👑 Premium Active\n⏳ Left: {left} Hours"
 
-    left = int((p["expire_time"] - time.time()) / 3600)
-
-    await q.message.edit(
-        f"👑 Premium Active\n⏳ Left: {left} Hours",
+    await q.message.edit_media(
+        InputMediaPhoto(
+            media=START_PIC,
+            caption=text,
+            parse_mode=ParseMode.HTML
+        ),
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 Back", callback_data="home")]
         ])
     )
 
+
 @Bot.on_callback_query(filters.regex("^leaderboard$"))
 async def lb(client, q):
-    await q.message.edit(
-        "🏆 Referral Leaderboard coming soon.",
+    await q.message.edit_media(
+        InputMediaPhoto(
+            media=START_PIC,
+            caption="🏆 Referral Leaderboard coming soon.",
+            parse_mode=ParseMode.HTML
+        ),
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 Back", callback_data="home")]
         ])
