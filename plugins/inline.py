@@ -1,4 +1,4 @@
-from pyrogram import Client, filters
+from pyrogram import Client
 from pyrogram.types import (
     InlineQueryResultArticle,
     InputTextMessageContent,
@@ -8,12 +8,15 @@ from pyrogram.types import (
 import re
 
 from bot import Bot
-from database.database import series_catalog   # ⚠️ agar tumhare DB file me name alag ho to yahi change karo
+from database.database import series_catalog   # agar name alag ho to change karo
 
 # ---------------- HELPERS ----------------
 
-def clean_query(q):
-    return re.sub(r"[^a-z0-9 ]","",q.lower()).strip()
+def clean_query(q: str):
+    return re.sub(r"[^a-z0-9 ]", "", q.lower()).strip()
+
+def display_title(key: str):
+    return key.replace("_", " ").title()
 
 # ---------------- INLINE SEARCH ----------------
 
@@ -22,36 +25,56 @@ async def inline_search(client: Client, inline_query):
 
     query = clean_query(inline_query.query)
 
-    if len(query) < 2:
-        await inline_query.answer([], cache_time=1)
+    if not query or len(query) < 2:
+        await inline_query.answer([], cache_time=1, is_personal=True)
         return
 
     results = []
 
-    # Mongo regex search on title key
-    cursor = series_catalog.find({"_id": {"$regex": query}}).limit(20)
+    # Case-insensitive regex search
+    cursor = series_catalog.find(
+        {"_id": {"$regex": query, "$options": "i"}}
+    ).limit(20)
 
     async for doc in cursor:
 
-        title_key = doc["_id"]
-        post_id = doc["post_id"]
+        title_key = doc.get("_id")
+        post_id = doc.get("post_id")
         episodes = doc.get("episodes", [])
 
-        title_display = title_key.replace("_"," ").title()
+        if not title_key or not post_id:
+            continue
 
-        text = f"🎬 {title_display}\n\n" + "\n\n".join(episodes[:5])
+        title_display = display_title(title_key)
 
-        btn = InlineKeyboardMarkup([
-            [InlineKeyboardButton("📂 Open Post", url=f"https://t.me/{client.username}?start=post_{post_id}")]
+        preview_eps = episodes[:5]
+        preview_text = "\n\n".join(preview_eps) if preview_eps else "No files yet."
+
+        text = f"🎬 {title_display}\n\n{preview_text}"
+
+        buttons = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    "📂 Open Post",
+                    url=f"https://t.me/{client.username}?start=post_{post_id}"
+                )
+            ]
         ])
 
         results.append(
             InlineQueryResultArticle(
                 title=title_display,
                 description=f"{len(episodes)} files available",
-                input_message_content=InputTextMessageContent(text),
-                reply_markup=btn
+                input_message_content=InputTextMessageContent(
+                    text,
+                    disable_web_page_preview=True
+                ),
+                reply_markup=buttons
             )
         )
 
-    await inline_query.answer(results, cache_time=5)
+    await inline_query.answer(
+        results,
+        cache_time=5,
+        is_personal=True
+        )
