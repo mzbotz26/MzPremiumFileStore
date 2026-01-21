@@ -349,7 +349,7 @@ async def lb(client, q):
 
 # ================= COMMANDS =================
 
-@Bot.on_message(filters.command("reset") & filters.private & filters.user(ADMINS), group=0)
+@Bot.on_message(filters.command("reset") & filters.private & filters.user(ADMINS), group=-1)
 async def reset_movie(client, message):
 
     if len(message.command) < 2:
@@ -367,7 +367,7 @@ async def reset_movie(client, message):
     else:
         await message.reply("⚠ Movie not found in database.")
 
-@Bot.on_message(filters.command("addpremium") & filters.private & filters.user(ADMINS), group=0)
+@Bot.on_message(filters.command("addpremium") & filters.private & filters.user(ADMINS), group=-1)
 async def add_premium_cmd(client, message):
 
     if len(message.command) < 3:
@@ -384,7 +384,7 @@ async def add_premium_cmd(client, message):
 
     await message.reply(f"👑 Premium activated for {days} days\nUser: {uid}")
 
-@Bot.on_message(filters.command("removepremium") & filters.private & filters.user(ADMINS), group=0)
+@Bot.on_message(filters.command("removepremium") & filters.private & filters.user(ADMINS), group=-1)
 async def remove_premium_cmd(client, message):
 
     if len(message.command) < 2:
