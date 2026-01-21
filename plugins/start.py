@@ -2,6 +2,7 @@
 
 import asyncio, time, random, string, re
 from pyrogram import filters
+from database.database import delete_series
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 from pyrogram.enums import ParseMode
 from pyrogram.errors import FloodWait
@@ -419,3 +420,20 @@ async def rp(client, m):
         return await m.reply("Usage: /removepremium user_id")
     await remove_premium(int(m.command[1]))
     await m.reply("❌ Premium removed successfully.")
+
+@Bot.on_message(filters.command("reset") & filters.user(ADMINS))
+async def reset_series(client, message):
+
+    if len(message.command) < 2:
+        return await message.reply("❌ Usage:\n/reset Vivah 2006")
+
+    title = " ".join(message.command[1:])
+
+    key = re.sub(r"[^a-z0-9]", "", title.lower())
+
+    res = await delete_series(key)
+
+    if res.deleted_count:
+        await message.reply(f"✅ Reset done for:\n<b>{title}</b>", parse_mode="HTML")
+    else:
+        await message.reply("⚠️ No record found for this title.")
