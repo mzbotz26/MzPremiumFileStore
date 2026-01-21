@@ -391,49 +391,51 @@ async def broadcast(client, m):
 
     await m.reply(f"✅ Broadcast Done\n\n✔ Sent: {sent}\n❌ Failed: {fail}")
 
-@Bot.on_message(filters.command("forceverify") & filters.user(ADMINS), group=1)
-async def fv(client, m):
-    if len(m.command) < 2:
-        return await m.reply("Usage: /forceverify user_id")
-    uid = int(m.command[1])
-    await update_verify_status(uid, is_verified=True, verified_time=time.time())
-    await m.reply("✅ User force verified.")
-
-@Bot.on_message(filters.command("unverify") & filters.user(ADMINS), group=1)
-async def uv(client, m):
-    if len(m.command) < 2:
-        return await m.reply("Usage: /unverify user_id")
-    await update_verify_status(int(m.command[1]), is_verified=False)
-    await m.reply("❌ User unverified.")
-
-@Bot.on_message(filters.command("addpremium") & filters.user(ADMINS), group=1)
-async def ap(client, m):
-    if len(m.command) < 3:
-        return await m.reply("Usage: /addpremium user_id days")
-    uid = int(m.command[1]); days = int(m.command[2])
-    await add_premium(uid, int(time.time()) + days * 86400)
-    await m.reply(ADMIN_APPROVAL_TEXT.format(uid=uid, days=days))
-
-@Bot.on_message(filters.command("removepremium") & filters.user(ADMINS), group=1)
-async def rp(client, m):
-    if len(m.command) < 2:
-        return await m.reply("Usage: /removepremium user_id")
-    await remove_premium(int(m.command[1]))
-    await m.reply("❌ Premium removed successfully.")
-
-@Bot.on_message(filters.command("reset") & filters.user(ADMINS))
-async def reset_series(client, message):
+@Bot.on_message(filters.command("reset") & filters.private)
+async def reset_movie(client, message):
 
     if len(message.command) < 2:
-        return await message.reply("❌ Usage:\n/reset Vivah 2006")
+        return await message.reply("❌ Usage:\n/reset Movie Name")
 
-    title = " ".join(message.command[1:])
+    title = " ".join(message.command[1:]).lower()
+    title = re.sub(r"[^a-z0-9]", "", title)
 
-    key = re.sub(r"[^a-z0-9]", "", title.lower())
+    from database.database import series_catalog
 
-    res = await delete_series(key)
+    result = await series_catalog.delete_one({"_id": title})
 
-    if res.deleted_count:
-        await message.reply(f"✅ Reset done for:\n<b>{title}</b>", parse_mode="HTML")
+    if result.deleted_count:
+        await message.reply(f"✅ Reset successful:\n{title.title()}")
     else:
-        await message.reply("⚠️ No record found for this title.")
+        await message.reply("⚠ Movie not found in database.")
+
+@Bot.on_message(filters.command("addpremium") & filters.private)
+async def add_premium_cmd(client, message):
+
+    if len(message.command) < 3:
+        return await message.reply("❌ Usage:\n/addpremium user_id days")
+
+    uid = int(message.command[1])
+    days = int(message.command[2])
+
+    from database.database import add_premium
+    import time
+
+    expire = int(time.time()) + days * 86400
+    await add_premium(uid, expire)
+
+    await message.reply(f"👑 Premium activated for {days} days\nUser: {uid}")
+
+@Bot.on_message(filters.command("removepremium") & filters.private)
+async def remove_premium_cmd(client, message):
+
+    if len(message.command) < 2:
+        return await message.reply("❌ Usage:\n/removepremium user_id")
+
+    uid = int(message.command[1])
+
+    from database.database import remove_premium
+
+    await remove_premium(uid)
+
+    await message.reply(f"🗑 Premium removed for user {uid}")
