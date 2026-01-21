@@ -226,7 +226,7 @@ async def send_home(client, message):
         ]
     ])
 
-    await message.reply_photo(START_PIC, caption=text, reply_markup=btn)
+    await message.reply_photo(START_PIC, caption=text, reply_markup=btn, parse_mode=ParseMode.HTML)
 
 # ================= START =================
 
