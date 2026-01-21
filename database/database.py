@@ -101,6 +101,7 @@ async def add_premium(user_id, expire_time=None):
         upsert=True
     )
 
+
 async def remove_premium(user_id):
     await premium_col.delete_one({"user_id": user_id})
 
@@ -164,3 +165,8 @@ async def get_requests(limit=20):
 
 async def clear_requests():
     await requests_col.delete_many({})
+
+async def search_titles(query, limit=20):
+    regex = {"$regex": query, "$options": "i"}
+    cursor = series_catalog.find({"_id": regex}).limit(limit)
+    return await cursor.to_list(length=limit)
