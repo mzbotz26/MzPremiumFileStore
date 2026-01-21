@@ -21,6 +21,38 @@ from database.database import (
 
 BOT_START_TIME = time.time()
 
+# ================= TEMPLATES =================
+
+PREMIUM_BADGE = "👑 PREMIUM USER\n\n"
+
+AUTO_INVOICE_TEXT = """🧾 Premium Invoice
+
+User ID : {uid}
+Plan : {days} Days
+Status : Approved
+
+Thank you for purchasing premium ❤️
+"""
+
+ADMIN_APPROVAL_TEXT = """✅ Premium Approved
+
+User : {uid}
+Plan : {days} Days
+Activated Successfully
+"""
+
+PAYMENT_SUCCESS_TEXT = """💳 Payment Successful
+
+Your premium will be activated shortly.
+Thank you for supporting us ❤️
+"""
+
+REFERRAL_REWARD_TEXT = """🎉 Congratulations!
+
+You earned 30 Days Premium from referrals 🎁
+Enjoy premium access ❤️
+"""
+
 # ================= USER CAPTION =================
 
 def build_user_caption(msg, is_premium=False):
