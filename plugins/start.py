@@ -201,7 +201,7 @@ async def send_home(client, message):
 
     ref_link = f"https://t.me/{client.username}?start=ref_{uid}"
 
-    text = f"""👋 {message.from_user.mention}
+    text = f"""👋 <b>{message.from_user.first_name}</b>
 
 🤖 Welcome to Premium File Store Bot!
 
@@ -226,17 +226,13 @@ async def send_home(client, message):
         ]
     ])
 
-    try:
-        await message.edit_media(
-            InputMediaPhoto(
-                media=START_PIC,
-                caption=text,
-                parse_mode=ParseMode.HTML
-            ),
-            reply_markup=btn
-        )
-    except:
-        await message.edit_text(text, reply_markup=btn, parse_mode=ParseMode.HTML)
+    # ❗ always send new message instead of editing user msg
+    await message.reply_photo(
+        START_PIC,
+        caption=text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=btn
+    )
 
 # ================= START =================
 
