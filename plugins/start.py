@@ -287,9 +287,6 @@ async def start_command(client, message):
 
         return
 
-    # ---------- HOME ----------
-    await send_home(client, message)
-
 # ================= CALLBACKS =================
 
 @Bot.on_callback_query(filters.regex("^home$"))
