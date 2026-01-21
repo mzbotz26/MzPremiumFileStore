@@ -8,22 +8,27 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot import Bot
 from config import CHANNEL_ID, TMDB_API_KEY, POST_CHANNEL
 from helper_func import encode
-from database.database import get_series, save_series, update_series_episodes
 from imdb import Cinemagoer
 
 ia = Cinemagoer()
+
+# LOOP SAFE LOCK
 locks = defaultdict(lambda: asyncio.Lock())
 
-# ---------------- TITLE CLEAN ----------------
+# ================= TITLE CLEAN =================
 
 def clean_title_with_year(name):
     name = name.replace(".", " ").replace("_", " ").replace("-", " ")
+
     year_match = re.search(r"\b(19|20)\d{2}\b", name)
     year = year_match.group(0) if year_match else ""
+
     name = re.sub(r"\b(19|20)\d{2}\b", "", name)
 
     name = re.sub(
-        r"\b(480p|720p|1080p|2160p|4k|x264|x265|hevc|hdrip|webdl|webrip|bluray|brrip|hdtc|hdts|cam|hindi|english|marathi|tamil|telugu|malayalam|dual|audio|telegram|tme|movieshub|filmyzilla|mzmoviiez|mzmoviies)\b",
+        r"\b(480p|720p|1080p|2160p|4k|x264|x265|hevc|hdrip|webdl|webrip|bluray|brrip|hdtc|hdts|cam|"
+        r"hindi|english|marathi|tamil|telugu|malayalam|dual|audio|telegram|tme|movieshub|"
+        r"filmyzilla|mzmoviiez|mzmoviies)\b",
         "", name, flags=re.I
     )
 
@@ -36,7 +41,7 @@ def clean_title_with_year(name):
 def merge_key_title(title):
     return re.sub(r"[^a-z0-9]", "", title.lower())
 
-# ---------------- AUDIO ----------------
+# ================= AUDIO =================
 
 def detect_audio(name):
     langs=[]
@@ -45,7 +50,7 @@ def detect_audio(name):
             langs.append(a.capitalize())
     return " / ".join(langs) if langs else "Unknown"
 
-# ---------------- UTILS ----------------
+# ================= UTILS =================
 
 def bytes_to_size(size):
     mb = round(size / 1024 / 1024, 2)
@@ -65,17 +70,14 @@ def detect_source(name):
             return s.upper()
     return "WEB-DL"
 
-def sort_key(x):
-    for i,o in enumerate(["480","720","1080","2160"]):
-        if o in x: return i
-    return 99
-
-# ---------------- IMDb ----------------
+# ================= IMDb =================
 
 def imdb_fetch(title):
     try:
         s = ia.search_movie(title)
-        if not s: return None,None,None,None,None,None
+        if not s:
+            return None,None,None,None,None,None
+
         m = ia.get_movie(s[0].movieID)
 
         poster = m.get("full-size cover url")
@@ -89,11 +91,12 @@ def imdb_fetch(title):
     except:
         return None,None,None,None,None,None
 
-# ---------------- TMDB FALLBACK ----------------
+# ================= TMDB FALLBACK =================
 
 async def tmdb_fetch(title):
     try:
         async with aiohttp.ClientSession() as session:
+
             async with session.get(
                 f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={title}"
             ) as r:
@@ -102,30 +105,30 @@ async def tmdb_fetch(title):
             if not s.get("results"):
                 return None,None,None,None,None,None
 
-            mid=s["results"][0]["id"]
+            mid = s["results"][0]["id"]
 
             async with session.get(
                 f"https://api.themoviedb.org/3/movie/{mid}?api_key={TMDB_API_KEY}"
             ) as r:
                 d = await r.json()
 
-        poster="https://image.tmdb.org/t/p/w500"+d.get("poster_path","") if d.get("poster_path") else None
-        rating=str(d.get("vote_average","N/A"))
-        year=d.get("release_date","")[:4]
-        story=d.get("overview")
-        genres=" / ".join([g["name"] for g in d.get("genres",[])])
-        imdb_id=d.get("imdb_id","")
+        poster = "https://image.tmdb.org/t/p/w500"+d.get("poster_path","") if d.get("poster_path") else None
+        rating = str(d.get("vote_average","N/A"))
+        year = d.get("release_date","")[:4]
+        story = d.get("overview")
+        genres = " / ".join([g["name"] for g in d.get("genres",[])])
+        imdb_id = d.get("imdb_id","")
 
         return poster,rating,year,story,genres,imdb_id
     except:
         return None,None,None,None,None,None
 
-# ---------------- AI STORY FALLBACK ----------------
+# ================= AI STORY =================
 
 def ai_story_fallback(title):
-    return f"{title} is a must-watch movie packed with entertainment, emotions and unforgettable moments."
+    return f"{title} is an engaging movie filled with emotions, entertainment and unforgettable moments. A must watch for movie lovers."
 
-# ---------------- MAIN ----------------
+# ================= MAIN =================
 
 @Bot.on_message(filters.chat(CHANNEL_ID))
 async def auto_post(client, message):
@@ -150,12 +153,12 @@ async def auto_post(client, message):
 
     if not poster or not story:
         tposter,trating,tyear,tstory,tgenres,timdb = await tmdb_fetch(title)
-        poster=poster or tposter
-        rating=rating or trating
-        year=year or tyear
-        story=story or tstory
-        genres=genres or tgenres
-        imdb_id=imdb_id or timdb
+        poster = poster or tposter
+        rating = rating or trating
+        year = year or tyear
+        story = story or tstory
+        genres = genres or tgenres
+        imdb_id = imdb_id or timdb
 
     if not story:
         story = ai_story_fallback(title)
@@ -208,6 +211,17 @@ async def auto_post(client, message):
         text = head + line + footer
 
         if poster:
-            await client.send_photo(POST_CHANNEL, poster, caption=text, parse_mode=ParseMode.HTML, reply_markup=buttons)
+            await client.send_photo(
+                POST_CHANNEL,
+                poster,
+                caption=text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=buttons
+            )
         else:
-            await client.send_message(POST_CHANNEL, text, parse_mode=ParseMode.HTML, reply_markup=buttons)
+            await client.send_message(
+                POST_CHANNEL,
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=buttons
+)
