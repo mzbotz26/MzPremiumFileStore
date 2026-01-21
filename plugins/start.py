@@ -210,10 +210,28 @@ async def start_command(client, message):
     verify = await get_verify_status(uid)
     premium = await get_premium(uid)
 
-    if len(message.command) > 1 and not message.command[1].startswith("ref_"):
+    # ---------- ARGUMENT HANDLER ----------
+    if len(message.command) > 1:
 
+        arg1 = message.command[1]
+
+        # ---- OPEN POST FROM INLINE ----
+        if arg1.startswith("post_"):
+            pid = int(arg1.split("_")[1])
+            return await client.forward_messages(
+                message.from_user.id,
+                POST_CHANNEL,
+                pid
+            )
+
+        # ---- REFERRAL ----
+        if arg1.startswith("ref_"):
+            await handle_referral(client, uid, int(arg1.split("_")[1]))
+            return
+
+        # ---- FILE LINK ----
         try:
-            decoded = decode(message.command[1])
+            decoded = decode(arg1)
             arg = decoded.split("-")
         except:
             return await message.reply("❌ Invalid file link.")
@@ -229,7 +247,10 @@ async def start_command(client, message):
 
         temp = await message.reply("📤 Fetching your file...")
 
-        msgs = await get_messages(client, ids)
+        try:
+            msgs = await get_messages(client, ids)
+        except:
+            return await temp.edit("❌ File not found.")
 
         await temp.delete()
 
@@ -238,7 +259,12 @@ async def start_command(client, message):
         for m in msgs:
             try:
                 cap = build_user_caption(m, premium and premium.get("is_premium"))
-                s = await m.copy(uid, caption=cap, parse_mode=ParseMode.HTML, protect_content=PROTECT_CONTENT)
+                s = await m.copy(
+                    uid,
+                    caption=cap,
+                    parse_mode=ParseMode.HTML,
+                    protect_content=PROTECT_CONTENT
+                )
                 sent.append(s)
                 await asyncio.sleep(0.4)
             except FloodWait as e:
@@ -252,20 +278,15 @@ async def start_command(client, message):
                 await m.delete()
             except:
                 pass
+
         try:
             await note.delete()
         except:
             pass
+
         return
 
-    await message.reply_photo(
-        START_PIC,
-        caption="🏠 Home",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🏠 Home", callback_data="home")]
-        ])
-    )
-
+    # ---------- HOME ----------
     await send_home(client, message)
 
 # ================= CALLBACKS =================
