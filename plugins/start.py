@@ -226,7 +226,17 @@ async def send_home(client, message):
         ]
     ])
 
-    await message.reply_photo(START_PIC, caption=text, reply_markup=btn, parse_mode=ParseMode.HTML)
+    try:
+        await message.edit_media(
+            InputMediaPhoto(
+                media=START_PIC,
+                caption=text,
+                parse_mode=ParseMode.HTML
+            ),
+            reply_markup=btn
+        )
+    except:
+        await message.edit_text(text, reply_markup=btn, parse_mode=ParseMode.HTML)
 
 # ================= START =================
 
