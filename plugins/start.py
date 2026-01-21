@@ -324,28 +324,6 @@ async def home_back(client, q):
     await q.answer()
     await send_home(client, q.message)
 
-@Bot.on_callback_query(filters.regex("^premium$"))
-async def prem(client, q):
-    await q.message.edit(
-        "👑 Premium Plans\n\n7 Days ₹10\n30 Days ₹30",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("📩 Contact Owner", url=f"https://t.me/{OWNER_USERNAME}")],
-            [InlineKeyboardButton("🔙 Back", callback_data="home")]
-        ])
-    )
-
-@Bot.on_callback_query(filters.regex("^refinfo$"))
-async def ref(client, q):
-    await q.message.edit(
-        "🎁 Invite 5 users → Get 30 Days Premium Free",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔙 Back", callback_data="home")]
-        ])
-@Bot.on_callback_query(filters.regex("^home$"))
-async def home_back(client, q):
-    await q.answer()
-    await send_home(client, q.message)
-
 
 @Bot.on_callback_query(filters.regex("^premium$"))
 async def prem(client, q):
