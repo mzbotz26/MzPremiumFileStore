@@ -26,7 +26,7 @@ FORCESUB_CHANNEL3 = int(os.environ.get("FORCESUB_CHANNEL3", "-1001931113198"))
 # ================= PUBLIC LINKS =================
 
 MOVIE_GROUP = os.environ.get("MOVIE_GROUP", "https://t.me/MzMoviiezGroup")
-UPDATE_CHANNEL = os.environ.get("UPDATE_CHANNEL", "https://t.me/MzMoviiez")
+UPDATE_CHANNEL = os.environ.get("UPDATE_CHANNEL", "https://t.me/MzBotz")
 
 # ================= OWNER =================
 
