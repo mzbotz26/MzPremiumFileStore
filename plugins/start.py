@@ -206,7 +206,7 @@ async def send_home(client, message, user=None):
 
     ref_link = f"https://t.me/{client.username}?start=ref_{uid}"
 
-    text = f"""👋 {u.mention(html=True)}
+    text = f"""👋 {u.mention}
 
 🤖 Welcome to Premium File Store Bot!
 
