@@ -193,15 +193,19 @@ async def not_joined(client, message):
 
 # ================= HOME UI =================
 
-async def send_home(client, message):
+async def send_home(client, message, is_callback=False):
 
-    uid = message.from_user.id
+    user = message.from_user
+    uid = user.id
+
     verify = await get_verify_status(uid)
     premium = await get_premium(uid)
 
     ref_link = f"https://t.me/{client.username}?start=ref_{uid}"
 
-    text = f"""👋 <b>{message.from_user.first_name}</b>
+    mention = f"<a href='tg://user?id={uid}'>{user.first_name}</a>"
+
+    text = f"""👋 {mention}
 
 🤖 Welcome to Premium File Store Bot!
 
@@ -226,13 +230,22 @@ async def send_home(client, message):
         ]
     ])
 
-    # ❗ always send new message instead of editing user msg
-    await message.reply_photo(
-        START_PIC,
-        caption=text,
-        parse_mode=ParseMode.HTML,
-        reply_markup=btn
-    )
+    if is_callback:
+        await message.edit_media(
+            InputMediaPhoto(
+                media=START_PIC,
+                caption=text,
+                parse_mode=ParseMode.HTML
+            ),
+            reply_markup=btn
+        )
+    else:
+        await message.reply_photo(
+            START_PIC,
+            caption=text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=btn
+        )
 
 # ================= START =================
 
@@ -321,14 +334,14 @@ async def start_command(client, message):
         except: pass
         return
 
-    await send_home(client, message)
+    await send_home(client, message False)
 
 # ================= CALLBACKS =================
 
 @Bot.on_callback_query(filters.regex("^home$"))
 async def home_back(client, q):
     await q.answer()
-    await send_home(client, q.message)
+    await send_home(client, q.message True)
 
 
 @Bot.on_callback_query(filters.regex("^premium$"))
