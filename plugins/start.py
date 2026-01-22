@@ -231,13 +231,28 @@ async def send_home(client, message, user=None):
         ]
     ])
 
-    try:
-        await message.edit_media(
-            InputMediaPhoto(media=START_PIC, caption=text, parse_mode=ParseMode.HTML),
-            reply_markup=btn
-        )
-    except:
-        await message.edit_text(text, reply_markup=btn, parse_mode=ParseMode.HTML)
+    # 🔹 If message is from callback → edit
+    if message.from_user.id == u.id and message.chat.type == "private":
+        try:
+            await message.edit_media(
+                InputMediaPhoto(media=START_PIC, caption=text, parse_mode=ParseMode.HTML),
+                reply_markup=btn
+            )
+            return
+        except:
+            try:
+                await message.edit_text(text, reply_markup=btn, parse_mode=ParseMode.HTML)
+                return
+            except:
+                pass
+
+    # 🔹 fallback → always send new
+    await message.reply_photo(
+        START_PIC,
+        caption=text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=btn
+    )
 
 # ================= START =================
 
