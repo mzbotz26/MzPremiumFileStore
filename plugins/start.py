@@ -334,14 +334,14 @@ async def start_command(client, message):
         except: pass
         return
 
-    await send_home(client, message False)
+    await send_home(client, message, False)
 
 # ================= CALLBACKS =================
 
 @Bot.on_callback_query(filters.regex("^home$"))
 async def home_back(client, q):
     await q.answer()
-    await send_home(client, q.message True)
+    await send_home(client, q.message, True)
 
 
 @Bot.on_callback_query(filters.regex("^premium$"))
