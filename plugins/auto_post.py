@@ -154,16 +154,17 @@ async def auto_post(client,message):
     episode = parsed.get("episode")
     is_series = bool(season or episode)
 
-    poster,rating,y2,story,genres,imdb_id = imdb_fetch(title, year)
+    # First try TMDB (best for poster + story)
+poster,rating,year,story,genres,imdb_id = await tmdb_fetch(title, title_year, is_series)
 
-    if not poster or not story:
-        t = await tmdb_fetch(title, year, is_series)
-        poster = poster or t[0]
-        rating = rating or t[1]
-        y2     = y2 or t[2]
-        story  = story or t[3]
-        genres = genres or t[4]
-        imdb_id= imdb_id or t[5]
+# Then fill missing from IMDb
+i = imdb_fetch(title, title_year)
+poster = poster or i[0]
+rating = rating or i[1]
+year   = year   or i[2]
+story  = story  or i[3]
+genres = genres or i[4]
+imdb_id= imdb_id or i[5]
 
     display_title = f"{title} ({year})" if year else title
 
